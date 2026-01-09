@@ -439,6 +439,11 @@
             color: var(--warning);
         }
         
+        .status-confirmed {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+        }
+        
         .status-processing {
             background-color: rgba(33, 150, 243, 0.2);
             color: var(--info);
@@ -541,6 +546,14 @@
             z-index: 3000;
             animation: fadeIn 0.3s ease;
             display: none;
+        }
+        
+        .toast.success {
+            background-color: var(--success);
+        }
+        
+        .toast.error {
+            background-color: var(--danger);
         }
         
         /* Responsive */
@@ -747,6 +760,7 @@
                     <select id="orderFilter" class="form-control" style="width: 200px;">
                         <option value="all">All Orders</option>
                         <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
                         <option value="processing">Processing</option>
                         <option value="shipped">Shipped</option>
                         <option value="delivered">Delivered</option>
@@ -1102,7 +1116,7 @@
                 html += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: var(--secondary); border-radius: 8px;">
                         <div>
-                            <div style="font-weight: 600;">${order.customerName || 'Customer'}</div>
+                            <div style="font-weight: 600;">${order.shippingAddress?.fullName || 'Customer'}</div>
                             <div style="font-size: 12px; color: var(--light-gray);">Order #${order.id.substring(0, 8)}</div>
                         </div>
                         <div style="text-align: right;">
@@ -1218,7 +1232,7 @@
                 imagePreview.style.display = 'none';
                 
                 hideLoading();
-                showToast('Product added successfully!');
+                showToast('Product added successfully!', 'success');
                 
             } catch (error) {
                 hideLoading();
@@ -1276,7 +1290,7 @@
             
             // In a real app, you would show an edit form
             // For demo, we'll just show an alert
-            showToast(`Edit product: ${product.name}`);
+            showToast(`Edit product: ${product.name}`, 'success');
         };
         
         // Delete product
@@ -1304,7 +1318,7 @@
                 );
                 
                 hideLoading();
-                showToast('Product deleted successfully!');
+                showToast('Product deleted successfully!', 'success');
                 
             } catch (error) {
                 hideLoading();
@@ -1339,13 +1353,15 @@
             filteredOrders.forEach(order => {
                 const date = order.createdAt?.toDate ? order.createdAt.toDate() : new Date();
                 const items = Array.isArray(order.items) ? order.items.length : 1;
+                const customerName = order.shippingAddress?.fullName || order.customerName || 'Customer';
+                const customerEmail = order.shippingAddress?.email || order.customerEmail || '';
                 
                 html += `
                     <tr>
                         <td>${order.id.substring(0, 8)}...</td>
                         <td>
-                            <div>${order.customerName || 'Customer'}</div>
-                            <div style="font-size: 12px; color: var(--light-gray);">${order.customerEmail || ''}</div>
+                            <div>${customerName}</div>
+                            <div style="font-size: 12px; color: var(--light-gray);">${customerEmail}</div>
                         </td>
                         <td>${items} item(s)</td>
                         <td>$${order.total?.toFixed(2) || '0.00'}</td>
@@ -1380,8 +1396,16 @@
             const order = orders.find(o => o.id === orderId);
             if (!order) return;
             
-            // In a real app, you would show a modal with order details
-            alert(`Order Details:\n\nCustomer: ${order.customerName}\nEmail: ${order.customerEmail}\nTotal: $${order.total?.toFixed(2) || '0.00'}\nStatus: ${order.status}`);
+            const date = order.createdAt?.toDate ? order.createdAt.toDate() : new Date();
+            const items = Array.isArray(order.items) ? order.items.map(item => 
+                `${item.name} x ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`
+            ).join('\n') : `${order.productName || 'Product'} x ${order.quantity || 1}`;
+            
+            const address = order.shippingAddress ? 
+                `${order.shippingAddress.fullName}\n${order.shippingAddress.address1}\n${order.shippingAddress.city}, ${order.shippingAddress.zipCode}\n${order.shippingAddress.country}\nPhone: ${order.shippingAddress.phone}` : 
+                'No address provided';
+            
+            alert(`Order Details:\n\nOrder ID: ${orderId}\nDate: ${date.toLocaleDateString()}\nCustomer: ${order.shippingAddress?.fullName || 'Customer'}\nEmail: ${order.shippingAddress?.email || ''}\nPhone: ${order.shippingAddress?.phone || ''}\nStatus: ${order.status || 'Pending'}\nPayment: ${order.paymentMethod || 'Not specified'}\n\nItems:\n${items}\n\nSubtotal: $${order.subtotal?.toFixed(2) || '0.00'}\nShipping: $${order.shipping?.toFixed(2) || '0.00'}\nTax: $${order.tax?.toFixed(2) || '0.00'}\nTotal: $${order.total?.toFixed(2) || '0.00'}\n\nShipping Address:\n${address}`);
         };
         
         // Update order status
@@ -1389,9 +1413,9 @@
             const order = orders.find(o => o.id === orderId);
             if (!order) return;
             
-            const newStatus = prompt('Enter new status (pending, processing, shipped, delivered, cancelled):', order.status || 'pending');
+            const newStatus = prompt('Enter new status (pending, confirmed, processing, shipped, delivered, cancelled):', order.status || 'pending');
             
-            if (newStatus && ['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(newStatus)) {
+            if (newStatus && ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].includes(newStatus)) {
                 try {
                     showLoading();
                     
@@ -1419,7 +1443,7 @@
                     }
                     
                     hideLoading();
-                    showToast('Order status updated!');
+                    showToast('Order status updated!', 'success');
                     
                 } catch (error) {
                     hideLoading();
@@ -1515,7 +1539,7 @@
                 specificUserSection.style.display = 'none';
                 
                 hideLoading();
-                showToast('Notification sent successfully!');
+                showToast('Notification sent successfully!', 'success');
                 
             } catch (error) {
                 hideLoading();
@@ -1532,7 +1556,7 @@
                     { read: true }
                 );
                 
-                showToast('Notification marked as read');
+                showToast('Notification marked as read', 'success');
                 
             } catch (error) {
                 console.error('Mark read error:', error);
@@ -1549,7 +1573,7 @@
                     window.adminFirebaseFunctions.doc(window.db, 'notifications', notificationId)
                 );
                 
-                showToast('Notification deleted');
+                showToast('Notification deleted', 'success');
                 
             } catch (error) {
                 console.error('Delete notification error:', error);
@@ -1605,7 +1629,7 @@
             const user = users.find(u => u.id === userId);
             if (!user) return;
             
-            alert(`User Details:\n\nName: ${user.displayName || 'Not set'}\nEmail: ${user.email || 'Not set'}\nPhone: ${user.phoneNumber || 'Not set'}\nUser ID: ${user.id}`);
+            alert(`User Details:\n\nName: ${user.displayName || 'Not set'}\nEmail: ${user.email || 'Not set'}\nPhone: ${user.phoneNumber || 'Not set'}\nUser ID: ${user.id}\nJoined: ${user.createdAt?.toDate ? user.createdAt.toDate().toLocaleDateString() : 'Unknown'}`);
         };
         
         // Handle logout
@@ -1632,7 +1656,7 @@
         // Show toast notification
         function showToast(message, type = 'success') {
             toast.textContent = message;
-            toast.style.backgroundColor = type === 'error' ? 'var(--danger)' : 'var(--primary)';
+            toast.className = 'toast ' + type;
             toast.style.display = 'block';
             
             setTimeout(() => {
