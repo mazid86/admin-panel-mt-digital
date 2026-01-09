@@ -16,42 +16,46 @@
         const firebaseConfig = {
             apiKey: "AIzaSyClVGy9JA0dGdKul26oGp9uandWCLRczyw",
             authDomain: "mirontelecom.firebaseapp.com",
-            databaseURL: "https://mirontelecom-default-rtdb.firebaseio.com",
             projectId: "mirontelecom",
             storageBucket: "mirontelecom.firebasestorage.app",
             messagingSenderId: "740556575446",
-            appId: "1:740556575446:web:7bfb1c5da42aebbb586f77",
-            measurementId: "G-TH1RWN4RMN"
+            appId: "1:740556575446:web:7bfb1c5da42aebbb586f77"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            const storage = getStorage(app);
 
-        window.firebaseApp = app;
-        window.auth = auth;
-        window.db = db;
-        window.storage = storage;
-        window.adminFirebaseFunctions = {
-            signOut,
-            onAuthStateChanged,
-            collection,
-            getDocs,
-            query,
-            where,
-            orderBy,
-            serverTimestamp,
-            doc,
-            updateDoc,
-            deleteDoc,
-            addDoc,
-            onSnapshot,
-            ref,
-            uploadBytes,
-            getDownloadURL,
-            deleteObject
-        };
+            window.firebaseApp = app;
+            window.auth = auth;
+            window.db = db;
+            window.storage = storage;
+            window.adminFirebaseFunctions = {
+                signOut,
+                onAuthStateChanged,
+                collection,
+                getDocs,
+                query,
+                where,
+                orderBy,
+                serverTimestamp,
+                doc,
+                updateDoc,
+                deleteDoc,
+                addDoc,
+                onSnapshot,
+                ref,
+                uploadBytes,
+                getDownloadURL,
+                deleteObject
+            };
+            
+            console.log("Firebase initialized successfully");
+        } catch (error) {
+            console.error("Firebase initialization error:", error);
+        }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -936,6 +940,13 @@
         // Initialize Admin Authentication
         async function initAdminAuth() {
             try {
+                if (!window.adminFirebaseFunctions) {
+                    console.error("Firebase not initialized");
+                    showToast('Firebase initialization failed', 'error');
+                    hideLoading();
+                    return;
+                }
+                
                 window.adminFirebaseFunctions.onAuthStateChanged(window.auth, async (user) => {
                     currentAdmin = user;
                     
@@ -950,21 +961,19 @@
                             'A';
                         userAvatar.textContent = initials;
                         
-                        // Check if user is admin (you should implement proper admin check)
-                        // For demo, we'll assume any logged in user is admin
-                        
                         // Setup real-time listeners
                         setupRealtimeListeners();
                         
                     } else {
                         // Admin is signed out, redirect to login
-                        window.location.href = 'user-app.html';
+                        window.location.href = 'index.html';
                     }
                 });
                 
             } catch (error) {
                 console.error('Admin auth error:', error);
                 showToast('Authentication error', 'error');
+                hideLoading();
             }
         }
         
@@ -1025,74 +1034,90 @@
         // Setup real-time listeners
         function setupRealtimeListeners() {
             // Products listener
-            const productsQuery = window.adminFirebaseFunctions.query(
-                window.adminFirebaseFunctions.collection(window.db, 'products'),
-                window.adminFirebaseFunctions.orderBy('createdAt', 'desc')
-            );
-            
-            window.adminFirebaseFunctions.onSnapshot(productsQuery, (snapshot) => {
-                products = [];
-                snapshot.forEach(doc => {
-                    products.push({ id: doc.id, ...doc.data() });
-                });
+            try {
+                const productsQuery = window.adminFirebaseFunctions.query(
+                    window.adminFirebaseFunctions.collection(window.db, 'products'),
+                    window.adminFirebaseFunctions.orderBy('createdAt', 'desc')
+                );
                 
-                totalProducts.textContent = products.length;
-                updateProductsTable();
-                
-                // If on products section, update table
-                if (document.getElementById('productsSection').classList.contains('active')) {
+                window.adminFirebaseFunctions.onSnapshot(productsQuery, (snapshot) => {
+                    products = [];
+                    snapshot.forEach(doc => {
+                        products.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    totalProducts.textContent = products.length;
                     updateProductsTable();
-                }
-            });
+                    
+                    // If on products section, update table
+                    if (document.getElementById('productsSection').classList.contains('active')) {
+                        updateProductsTable();
+                    }
+                });
+            } catch (error) {
+                console.error('Products listener error:', error);
+            }
             
             // Orders listener
-            const ordersQuery = window.adminFirebaseFunctions.query(
-                window.adminFirebaseFunctions.collection(window.db, 'orders'),
-                window.adminFirebaseFunctions.orderBy('createdAt', 'desc')
-            );
-            
-            window.adminFirebaseFunctions.onSnapshot(ordersQuery, (snapshot) => {
-                orders = [];
-                snapshot.forEach(doc => {
-                    orders.push({ id: doc.id, ...doc.data() });
-                });
+            try {
+                const ordersQuery = window.adminFirebaseFunctions.query(
+                    window.adminFirebaseFunctions.collection(window.db, 'orders'),
+                    window.adminFirebaseFunctions.orderBy('createdAt', 'desc')
+                );
                 
-                totalOrders.textContent = orders.length;
-                updateRecentOrders();
-                updateOrdersTable();
-            });
-            
-            // Users listener (you need to create a users collection)
-            const usersQuery = window.adminFirebaseFunctions.query(
-                window.adminFirebaseFunctions.collection(window.db, 'users')
-            );
-            
-            window.adminFirebaseFunctions.onSnapshot(usersQuery, (snapshot) => {
-                users = [];
-                snapshot.forEach(doc => {
-                    users.push({ id: doc.id, ...doc.data() });
+                window.adminFirebaseFunctions.onSnapshot(ordersQuery, (snapshot) => {
+                    orders = [];
+                    snapshot.forEach(doc => {
+                        orders.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    totalOrders.textContent = orders.length;
+                    updateRecentOrders();
+                    updateOrdersTable();
                 });
+            } catch (error) {
+                console.error('Orders listener error:', error);
+            }
+            
+            // Users listener
+            try {
+                const usersQuery = window.adminFirebaseFunctions.query(
+                    window.adminFirebaseFunctions.collection(window.db, 'users')
+                );
                 
-                totalUsers.textContent = users.length;
-                updateUsersTable();
-            });
+                window.adminFirebaseFunctions.onSnapshot(usersQuery, (snapshot) => {
+                    users = [];
+                    snapshot.forEach(doc => {
+                        users.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    totalUsers.textContent = users.length;
+                    updateUsersTable();
+                });
+            } catch (error) {
+                console.error('Users listener error:', error);
+            }
             
             // Notifications listener
-            const notificationsQuery = window.adminFirebaseFunctions.query(
-                window.adminFirebaseFunctions.collection(window.db, 'notifications'),
-                window.adminFirebaseFunctions.orderBy('createdAt', 'desc')
-            );
-            
-            window.adminFirebaseFunctions.onSnapshot(notificationsQuery, (snapshot) => {
-                notifications = [];
-                snapshot.forEach(doc => {
-                    notifications.push({ id: doc.id, ...doc.data() });
-                });
+            try {
+                const notificationsQuery = window.adminFirebaseFunctions.query(
+                    window.adminFirebaseFunctions.collection(window.db, 'notifications'),
+                    window.adminFirebaseFunctions.orderBy('createdAt', 'desc')
+                );
                 
-                totalNotifications.textContent = notifications.length;
-                updateRecentNotifications();
-                updateSentNotifications();
-            });
+                window.adminFirebaseFunctions.onSnapshot(notificationsQuery, (snapshot) => {
+                    notifications = [];
+                    snapshot.forEach(doc => {
+                        notifications.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    totalNotifications.textContent = notifications.length;
+                    updateRecentNotifications();
+                    updateSentNotifications();
+                });
+            } catch (error) {
+                console.error('Notifications listener error:', error);
+            }
         }
         
         // Load dashboard data
@@ -1303,7 +1328,7 @@
                 const product = products.find(p => p.id === productId);
                 
                 // Delete image from storage if exists
-                if (product.imageUrl) {
+                if (product.imageUrl && product.imageUrl.includes('firebasestorage')) {
                     try {
                         const imageRef = window.adminFirebaseFunctions.ref(window.storage, product.imageUrl);
                         await window.adminFirebaseFunctions.deleteObject(imageRef);
@@ -1636,7 +1661,7 @@
         async function handleLogout() {
             try {
                 await window.adminFirebaseFunctions.signOut(window.auth);
-                window.location.href = 'user-app.html';
+                window.location.href = 'index.html';
             } catch (error) {
                 console.error('Logout error:', error);
                 showToast('Error logging out', 'error');
