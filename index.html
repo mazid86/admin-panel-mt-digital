@@ -374,6 +374,15 @@
             background-color: #3d8b40;
         }
         
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        
         /* Tables */
         .data-table {
             width: 100%;
@@ -468,6 +477,114 @@
             color: var(--danger);
         }
         
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray);
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            color: var(--primary);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--light-gray);
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .close-btn:hover {
+            color: var(--primary);
+        }
+        
+        /* Order Details */
+        .order-details-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .order-details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .order-items {
+            margin-top: 20px;
+        }
+        
+        .order-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background-color: var(--secondary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .order-item-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .order-summary {
+            background-color: var(--secondary);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray);
+        }
+        
+        .summary-total {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 10px;
+        }
+        
         /* Notification Items */
         .notification-item {
             padding: 20px;
@@ -560,6 +677,49 @@
             background-color: var(--danger);
         }
         
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--gray);
+            padding-bottom: 10px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background-color: var(--secondary);
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* User History */
+        .history-item {
+            padding: 15px;
+            background-color: var(--secondary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--success);
+        }
+        
+        .history-item.cancelled {
+            border-left-color: var(--danger);
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .admin-nav {
@@ -592,6 +752,19 @@
     
     <!-- Toast -->
     <div class="toast" id="toast"></div>
+    
+    <!-- Order Preview Modal -->
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="orderModalTitle">Order Details</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="orderModalBody">
+                <!-- Order details will be loaded here -->
+            </div>
+        </div>
+    </div>
     
     <!-- Admin Header -->
     <header class="admin-header">
@@ -855,7 +1028,7 @@
             <h2 class="section-title">Manage Users</h2>
             
             <div class="admin-card">
-                <h3 style="margin-bottom: 20px;">All Users</h3>
+                <h3 style="margin-bottom: 20px;">All Registered Users</h3>
                 
                 <table class="data-table">
                     <thead>
@@ -878,6 +1051,29 @@
                     </tbody>
                 </table>
             </div>
+            
+            <div class="admin-card">
+                <div class="tabs">
+                    <div class="tab active" data-tab="userHistory">User Order History</div>
+                    <div class="tab" data-tab="userDetails">User Details</div>
+                </div>
+                
+                <div class="tab-content active" id="userHistoryTab">
+                    <div id="userHistoryContent">
+                        <p style="text-align: center; padding: 40px; color: var(--light-gray);">
+                            Click on a user's "View History" button to see their order history
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="userDetailsTab">
+                    <div id="userDetailsContent">
+                        <p style="text-align: center; padding: 40px; color: var(--light-gray);">
+                            Click on a user's "View Details" button to see their information
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -888,6 +1084,7 @@
         let orders = [];
         let users = [];
         let notifications = [];
+        let selectedUserId = null;
         
         // DOM Elements
         const loading = document.getElementById('loading');
@@ -898,6 +1095,9 @@
         const userEmail = document.getElementById('userEmail');
         const adminMenuItems = document.querySelectorAll('.admin-menu-item');
         const adminSections = document.querySelectorAll('.admin-section');
+        const orderModal = document.getElementById('orderModal');
+        const orderModalBody = document.getElementById('orderModalBody');
+        const orderModalTitle = document.getElementById('orderModalTitle');
         
         // Dashboard Elements
         const totalProducts = document.getElementById('totalProducts');
@@ -927,6 +1127,10 @@
         
         // Users Elements
         const usersTableBody = document.getElementById('usersTableBody');
+        const userHistoryContent = document.getElementById('userHistoryContent');
+        const userDetailsContent = document.getElementById('userDetailsContent');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
         
         // Initialize Admin Panel
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1005,6 +1209,21 @@
             notificationUsers.addEventListener('change', (e) => {
                 specificUserSection.style.display = e.target.value === 'specific' ? 'block' : 'none';
             });
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            // Close modal on outside click
+            orderModal.addEventListener('click', (e) => {
+                if (e.target === orderModal) {
+                    closeModal();
+                }
+            });
         }
         
         // Switch admin section
@@ -1029,6 +1248,19 @@
             } else if (section === 'users') {
                 loadUsers();
             }
+        }
+        
+        // Switch tab
+        function switchTab(tabId) {
+            // Update active tab
+            tabs.forEach(tab => {
+                tab.classList.toggle('active', tab.getAttribute('data-tab') === tabId);
+            });
+            
+            // Show active tab content
+            tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === `${tabId}Tab`);
+            });
         }
         
         // Setup real-time listeners
@@ -1079,8 +1311,9 @@
                 console.error('Orders listener error:', error);
             }
             
-            // Users listener
+            // Users listener (Firebase Authentication users)
             try {
+                // Listen to Firestore users collection (you need to create this collection)
                 const usersQuery = window.adminFirebaseFunctions.query(
                     window.adminFirebaseFunctions.collection(window.db, 'users')
                 );
@@ -1088,7 +1321,13 @@
                 window.adminFirebaseFunctions.onSnapshot(usersQuery, (snapshot) => {
                     users = [];
                     snapshot.forEach(doc => {
-                        users.push({ id: doc.id, ...doc.data() });
+                        const userData = doc.data();
+                        users.push({ 
+                            id: doc.id, 
+                            ...userData,
+                            // Calculate total orders for this user
+                            totalOrders: orders.filter(order => order.userId === doc.id).length
+                        });
                     });
                     
                     totalUsers.textContent = users.length;
@@ -1397,8 +1636,8 @@
                         </td>
                         <td>${date.toLocaleDateString()}</td>
                         <td class="table-actions">
-                            <button class="action-btn view-btn" onclick="viewOrder('${order.id}')">
-                                <i class="fas fa-eye"></i>
+                            <button class="action-btn view-btn" onclick="viewOrderPreview('${order.id}')">
+                                <i class="fas fa-eye"></i> Preview
                             </button>
                             <button class="action-btn edit-btn" onclick="updateOrderStatus('${order.id}')">
                                 <i class="fas fa-edit"></i>
@@ -1416,21 +1655,223 @@
             updateOrdersTable();
         }
         
-        // View order details
-        window.viewOrder = async function(orderId) {
+        // View order preview in modal
+        window.viewOrderPreview = async function(orderId) {
             const order = orders.find(o => o.id === orderId);
             if (!order) return;
             
             const date = order.createdAt?.toDate ? order.createdAt.toDate() : new Date();
-            const items = Array.isArray(order.items) ? order.items.map(item => 
-                `${item.name} x ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`
-            ).join('\n') : `${order.productName || 'Product'} x ${order.quantity || 1}`;
+            const items = Array.isArray(order.items) ? order.items : [{
+                name: order.productName || 'Product',
+                price: order.price || 0,
+                quantity: order.quantity || 1,
+                imageUrl: order.imageUrl
+            }];
             
             const address = order.shippingAddress ? 
-                `${order.shippingAddress.fullName}\n${order.shippingAddress.address1}\n${order.shippingAddress.city}, ${order.shippingAddress.zipCode}\n${order.shippingAddress.country}\nPhone: ${order.shippingAddress.phone}` : 
+                `${order.shippingAddress.fullName}<br>
+                 ${order.shippingAddress.address1}<br>
+                 ${order.shippingAddress.city}, ${order.shippingAddress.zipCode}<br>
+                 ${order.shippingAddress.country}<br>
+                 Phone: ${order.shippingAddress.phone}` : 
                 'No address provided';
             
-            alert(`Order Details:\n\nOrder ID: ${orderId}\nDate: ${date.toLocaleDateString()}\nCustomer: ${order.shippingAddress?.fullName || 'Customer'}\nEmail: ${order.shippingAddress?.email || ''}\nPhone: ${order.shippingAddress?.phone || ''}\nStatus: ${order.status || 'Pending'}\nPayment: ${order.paymentMethod || 'Not specified'}\n\nItems:\n${items}\n\nSubtotal: $${order.subtotal?.toFixed(2) || '0.00'}\nShipping: $${order.shipping?.toFixed(2) || '0.00'}\nTax: $${order.tax?.toFixed(2) || '0.00'}\nTotal: $${order.total?.toFixed(2) || '0.00'}\n\nShipping Address:\n${address}`);
+            let itemsHtml = '';
+            items.forEach(item => {
+                itemsHtml += `
+                    <div class="order-item">
+                        <img src="${item.imageUrl || 'https://via.placeholder.com/60'}" 
+                             alt="${item.name}" 
+                             class="order-item-img">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">${item.name}</div>
+                            <div style="color: var(--light-gray); font-size: 14px;">
+                                Quantity: ${item.quantity} × $${item.price?.toFixed(2) || '0.00'}
+                            </div>
+                        </div>
+                        <div style="font-weight: 600;">
+                            $${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            orderModalTitle.textContent = `Order #${orderId.substring(0, 8)}`;
+            orderModalBody.innerHTML = `
+                <div class="order-details-grid">
+                    <div>
+                        <h3 style="margin-bottom: 15px; color: var(--primary);">Customer Information</h3>
+                        <div style="background-color: var(--secondary); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                            <div style="margin-bottom: 10px;">
+                                <strong>Name:</strong> ${order.shippingAddress?.fullName || 'Customer'}
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <strong>Email:</strong> ${order.shippingAddress?.email || order.customerEmail || 'N/A'}
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <strong>Phone:</strong> ${order.shippingAddress?.phone || 'N/A'}
+                            </div>
+                            <div>
+                                <strong>Order Date:</strong> ${date.toLocaleDateString()}
+                            </div>
+                        </div>
+                        
+                        <h3 style="margin-bottom: 15px; color: var(--primary);">Order Items</h3>
+                        <div class="order-items">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 15px; color: var(--primary);">Order Summary</h3>
+                        <div class="order-summary">
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span>$${order.subtotal?.toFixed(2) || '0.00'}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Shipping:</span>
+                                <span>$${order.shipping?.toFixed(2) || '0.00'}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Tax:</span>
+                                <span>$${order.tax?.toFixed(2) || '0.00'}</span>
+                            </div>
+                            <div class="summary-row summary-total">
+                                <span>Total:</span>
+                                <span>$${order.total?.toFixed(2) || '0.00'}</span>
+                            </div>
+                            
+                            <div style="margin-top: 30px;">
+                                <h4 style="margin-bottom: 10px; color: var(--primary);">Shipping Address</h4>
+                                <div style="color: var(--light-gray);">
+                                    ${address}
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 30px;">
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    ${order.status === 'pending' ? `
+                                        <button class="btn btn-success" onclick="confirmOrder('${orderId}')" style="flex: 1;">
+                                            <i class="fas fa-check"></i> Confirm Order
+                                        </button>
+                                        <button class="btn btn-danger" onclick="cancelOrder('${orderId}')" style="flex: 1;">
+                                            <i class="fas fa-times"></i> Cancel Order
+                                        </button>
+                                    ` : `
+                                        <div style="text-align: center; padding: 15px; background-color: var(--${order.status === 'confirmed' || order.status === 'delivered' ? 'success' : order.status === 'cancelled' ? 'danger' : 'warning'}); border-radius: 8px; width: 100%;">
+                                            <strong>Status:</strong> ${order.status}
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            orderModal.style.display = 'flex';
+        };
+        
+        // Close modal
+        window.closeModal = function() {
+            orderModal.style.display = 'none';
+        };
+        
+        // Confirm order
+        window.confirmOrder = async function(orderId) {
+            if (!confirm('Are you sure you want to confirm this order?')) return;
+            
+            try {
+                showLoading();
+                
+                await window.adminFirebaseFunctions.updateDoc(
+                    window.adminFirebaseFunctions.doc(window.db, 'orders', orderId),
+                    { 
+                        status: 'confirmed', 
+                        updatedAt: window.adminFirebaseFunctions.serverTimestamp(),
+                        confirmedBy: currentAdmin.uid,
+                        confirmedByName: currentAdmin.displayName || 'Admin',
+                        confirmedAt: window.adminFirebaseFunctions.serverTimestamp()
+                    }
+                );
+                
+                // Create notification for user
+                const order = orders.find(o => o.id === orderId);
+                if (order && order.userId) {
+                    const notificationData = {
+                        type: 'order_update',
+                        title: 'Order Confirmed',
+                        message: `Your order #${orderId.substring(0, 8)} has been confirmed and is now being processed.`,
+                        userId: order.userId,
+                        orderId: orderId,
+                        read: false,
+                        createdAt: window.adminFirebaseFunctions.serverTimestamp()
+                    };
+                    
+                    await window.adminFirebaseFunctions.addDoc(
+                        window.adminFirebaseFunctions.collection(window.db, 'notifications'),
+                        notificationData
+                    );
+                }
+                
+                hideLoading();
+                showToast('Order confirmed successfully!', 'success');
+                closeModal();
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Confirm order error:', error);
+                showToast('Error confirming order', 'error');
+            }
+        };
+        
+        // Cancel order
+        window.cancelOrder = async function(orderId) {
+            if (!confirm('Are you sure you want to cancel this order?')) return;
+            
+            try {
+                showLoading();
+                
+                await window.adminFirebaseFunctions.updateDoc(
+                    window.adminFirebaseFunctions.doc(window.db, 'orders', orderId),
+                    { 
+                        status: 'cancelled', 
+                        updatedAt: window.adminFirebaseFunctions.serverTimestamp(),
+                        cancelledBy: currentAdmin.uid,
+                        cancelledByName: currentAdmin.displayName || 'Admin',
+                        cancelledAt: window.adminFirebaseFunctions.serverTimestamp()
+                    }
+                );
+                
+                // Create notification for user
+                const order = orders.find(o => o.id === orderId);
+                if (order && order.userId) {
+                    const notificationData = {
+                        type: 'order_update',
+                        title: 'Order Cancelled',
+                        message: `Your order #${orderId.substring(0, 8)} has been cancelled.`,
+                        userId: order.userId,
+                        orderId: orderId,
+                        read: false,
+                        createdAt: window.adminFirebaseFunctions.serverTimestamp()
+                    };
+                    
+                    await window.adminFirebaseFunctions.addDoc(
+                        window.adminFirebaseFunctions.collection(window.db, 'notifications'),
+                        notificationData
+                    );
+                }
+                
+                hideLoading();
+                showToast('Order cancelled successfully!', 'success');
+                closeModal();
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Cancel order error:', error);
+                showToast('Error cancelling order', 'error');
+            }
         };
         
         // Update order status
@@ -1628,18 +2069,24 @@
             
             users.forEach(user => {
                 const date = user.createdAt?.toDate ? user.createdAt.toDate() : new Date();
+                const userOrders = orders.filter(order => order.userId === user.id);
+                const confirmedOrders = userOrders.filter(order => order.status === 'confirmed' || order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered').length;
+                const cancelledOrders = userOrders.filter(order => order.status === 'cancelled').length;
                 
                 html += `
                     <tr>
                         <td>${user.id.substring(0, 8)}...</td>
-                        <td>${user.displayName || 'No name'}</td>
+                        <td>${user.displayName || user.name || 'No name'}</td>
                         <td>${user.email || 'No email'}</td>
-                        <td>${user.phoneNumber || 'No phone'}</td>
+                        <td>${user.phoneNumber || user.phone || 'No phone'}</td>
                         <td>${date.toLocaleDateString()}</td>
-                        <td>${user.orderCount || 0}</td>
+                        <td>${userOrders.length} (✓${confirmedOrders} ✗${cancelledOrders})</td>
                         <td class="table-actions">
-                            <button class="action-btn view-btn" onclick="viewUser('${user.id}')">
-                                <i class="fas fa-eye"></i>
+                            <button class="action-btn view-btn" onclick="viewUserDetails('${user.id}')">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                            <button class="action-btn edit-btn" onclick="viewUserHistory('${user.id}')">
+                                <i class="fas fa-history"></i> History
                             </button>
                         </td>
                     </tr>
@@ -1650,11 +2097,131 @@
         }
         
         // View user details
-        window.viewUser = function(userId) {
+        window.viewUserDetails = function(userId) {
+            selectedUserId = userId;
             const user = users.find(u => u.id === userId);
             if (!user) return;
             
-            alert(`User Details:\n\nName: ${user.displayName || 'Not set'}\nEmail: ${user.email || 'Not set'}\nPhone: ${user.phoneNumber || 'Not set'}\nUser ID: ${user.id}\nJoined: ${user.createdAt?.toDate ? user.createdAt.toDate().toLocaleDateString() : 'Unknown'}`);
+            const date = user.createdAt?.toDate ? user.createdAt.toDate() : new Date();
+            const userOrders = orders.filter(order => order.userId === userId);
+            const totalSpent = userOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+            
+            userDetailsContent.innerHTML = `
+                <div style="background-color: var(--secondary); padding: 20px; border-radius: 10px;">
+                    <h3 style="margin-bottom: 20px; color: var(--primary);">User Information</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <strong>User ID:</strong><br>
+                            <span style="color: var(--light-gray); font-size: 14px;">${user.id}</span>
+                        </div>
+                        <div>
+                            <strong>Account Created:</strong><br>
+                            <span style="color: var(--light-gray);">${date.toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <strong>Name:</strong><br>
+                            <span style="color: var(--light-gray);">${user.displayName || user.name || 'Not set'}</span>
+                        </div>
+                        <div>
+                            <strong>Email:</strong><br>
+                            <span style="color: var(--light-gray);">${user.email || 'Not set'}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <strong>Phone:</strong><br>
+                            <span style="color: var(--light-gray);">${user.phoneNumber || user.phone || 'Not set'}</span>
+                        </div>
+                        <div>
+                            <strong>Address:</strong><br>
+                            <span style="color: var(--light-gray);">${user.address || 'Not set'}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="background-color: var(--darker); padding: 15px; border-radius: 8px; margin-top: 20px;">
+                        <h4 style="margin-bottom: 10px; color: var(--primary);">Order Statistics</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <div style="text-align: center; padding: 10px; background-color: var(--card-bg); border-radius: 8px;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--primary);">${userOrders.length}</div>
+                                <div style="font-size: 12px; color: var(--light-gray);">Total Orders</div>
+                            </div>
+                            <div style="text-align: center; padding: 10px; background-color: var(--card-bg); border-radius: 8px;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--success);">$${totalSpent.toFixed(2)}</div>
+                                <div style="font-size: 12px; color: var(--light-gray);">Total Spent</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            switchTab('userDetails');
+        };
+        
+        // View user order history
+        window.viewUserHistory = function(userId) {
+            selectedUserId = userId;
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            const userOrders = orders.filter(order => order.userId === userId);
+            
+            if (userOrders.length === 0) {
+                userHistoryContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <i class="fas fa-shopping-cart" style="font-size: 48px; color: var(--light-gray); margin-bottom: 20px;"></i>
+                        <p style="color: var(--light-gray);">No order history found for this user</p>
+                    </div>
+                `;
+            } else {
+                let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+                
+                userOrders.forEach(order => {
+                    const date = order.createdAt?.toDate ? order.createdAt.toDate() : new Date();
+                    const isConfirmed = order.status === 'confirmed' || order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered';
+                    const isCancelled = order.status === 'cancelled';
+                    
+                    html += `
+                        <div class="history-item ${isCancelled ? 'cancelled' : ''}">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <div>
+                                    <div style="font-weight: 600; color: ${isCancelled ? 'var(--danger)' : 'var(--success)'};">
+                                        ${isCancelled ? '❌ Cancelled' : '✓ ' + order.status}
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--light-gray);">
+                                        Order #${order.id.substring(0, 8)} • ${date.toLocaleDateString()}
+                                    </div>
+                                </div>
+                                <div style="font-weight: 700; color: var(--primary);">
+                                    $${order.total?.toFixed(2) || '0.00'}
+                                </div>
+                            </div>
+                            <div style="color: var(--light-gray); font-size: 14px;">
+                                ${order.shippingAddress?.fullName || 'Customer'} • ${order.items?.length || 1} item(s)
+                            </div>
+                            ${order.confirmedAt || order.cancelledAt ? `
+                                <div style="font-size: 12px; color: var(--light-gray); margin-top: 5px;">
+                                    ${isCancelled ? 'Cancelled' : 'Confirmed'} by: ${order.cancelledByName || order.confirmedByName || 'Admin'}
+                                </div>
+                            ` : ''}
+                            <div style="margin-top: 10px;">
+                                <button class="action-btn view-btn" onclick="viewOrderPreview('${order.id}')" style="padding: 5px 10px; font-size: 12px;">
+                                    <i class="fas fa-eye"></i> View Details
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                userHistoryContent.innerHTML = html;
+            }
+            
+            switchTab('userHistory');
         };
         
         // Handle logout
